@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+resources:
+  - ../../base
+
+commonLabels:
+  environment: prod
+
+patches:
+  - path: patches/order-service-replicas.yaml
+    target:
+      kind: Deployment
+      name: order-service
+  - path: patches/product-service-replicas.yaml
+    target:
+      kind: Deployment
+      name: product-service
+  - path: patches/store-front-replicas.yaml
+    target:
+      kind: Deployment
+      name: store-front
