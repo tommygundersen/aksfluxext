@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: aks-store-demo-prod
-  namespace: flux-system
+  namespace: default
 spec:
   interval: 5m
   targetNamespace: aks-store-demo-prod
@@ -12,7 +12,7 @@ spec:
       sourceRef:
         kind: GitRepository
         name: aks-store-demo-charts
-        namespace: flux-system
+        namespace: default
       interval: 1m
   values:
     # Production environment specific values
@@ -25,7 +25,7 @@ spec:
       accounting: 2
       rabbitmq: 1
       mongodb: 1
-    
+
     # Resource limits for production
     resources:
       requests:
@@ -34,10 +34,10 @@ spec:
       limits:
         cpu: "500m"
         memory: "1Gi"
-    
+
     # Production specific configurations
     env: "production"
-    
+
     # Production networking
     service:
       type: LoadBalancer

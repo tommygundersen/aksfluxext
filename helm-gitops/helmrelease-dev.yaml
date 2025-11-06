@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: aks-store-demo-dev
-  namespace: flux-system
+  namespace: default
 spec:
   interval: 5m
   targetNamespace: aks-store-demo-dev
@@ -12,7 +12,7 @@ spec:
       sourceRef:
         kind: GitRepository
         name: aks-store-demo-charts
-        namespace: flux-system
+        namespace: default
       interval: 1m
   values:
     # Development environment specific values
@@ -25,7 +25,7 @@ spec:
       accounting: 1
       rabbitmq: 1
       mongodb: 1
-    
+
     # Resource limits for development
     resources:
       requests:
@@ -34,6 +34,6 @@ spec:
       limits:
         cpu: "100m"
         memory: "256Mi"
-    
+
     # Development specific configurations
     env: "development"

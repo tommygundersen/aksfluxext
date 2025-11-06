@@ -1085,11 +1085,10 @@ spec:
   targetNamespace: helm-demo
   chart:
     spec:
-      chart: aks-store-demo
-      version: "1.0.0"
+      chart: charts/aks-store-demo
       sourceRef:
-        kind: HelmRepository
-        name: azure-samples
+        kind: GitRepository
+        name: aks-store-demo-charts
         namespace: flux-system
       interval: 1m
   values:
@@ -1137,11 +1136,10 @@ spec:
   targetNamespace: helm-demo
   chart:
     spec:
-      chart: aks-store-demo
-      version: "1.0.0"
+      chart: charts/aks-store-demo
       sourceRef:
-        kind: HelmRepository
-        name: azure-samples
+        kind: GitRepository
+        name: aks-store-demo-charts
         namespace: flux-system
       interval: 1m
   values:
