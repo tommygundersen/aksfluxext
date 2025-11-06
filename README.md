@@ -1225,22 +1225,24 @@ spec:
 Create `helm-gitops/helmrepository.yaml`:
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
+kind: GitRepository
 metadata:
-  name: azure-samples
+  name: azure-samples-charts
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://azure-samples.github.io/aks-store-demo
+  url: https://github.com/Azure-Samples/aks-store-demo
+  ref:
+    branch: main
 ```
 
-**Understanding External Helm Repositories:**
+**Understanding Chart Sources:**
 
-This HelmRepository resource points to an **external Helm chart repository** hosted by Azure Samples. Unlike our Git repository that contains Kustomize manifests, this references a Helm chart source repository.
+This GitRepository resource points to the **Azure Samples GitHub repository** that contains Helm chart source code. Unlike a traditional HelmRepository (which serves packaged charts), this references a Git repository containing chart source files.
 
 **Azure Samples Repository Structure:**
-- **Repository URL**: `https://azure-samples.github.io/aks-store-demo`
-- **Actual Structure**: The repository contains chart source code, not packaged charts
+- **Repository URL**: `https://github.com/Azure-Samples/aks-store-demo`
+- **Actual Structure**: The repository contains chart source code in the `/charts/` directory
 - **Chart Location**: `/charts/aks-store-demo/` directory in the repository
 - **Layout**:
   ```
@@ -1258,7 +1260,7 @@ This HelmRepository resource points to an **external Helm chart repository** hos
 
 **How Flux Resolves the Chart:**
 When you reference the chart in a HelmRelease, Flux:
-1. **Clones** the repository from the HelmRepository URL
+1. **Clones** the repository from the GitRepository URL
 2. **Locates** the chart using the path specified in the HelmRelease `chart.spec.chart` field
 3. **Renders** templates with your values
 4. **Applies** the generated manifests to Kubernetes
@@ -1269,23 +1271,12 @@ chart:
   spec:
     chart: aks-store-demo              # This specifies the chart path/name
     sourceRef:
-      kind: HelmRepository            # Points to the repository
-      name: azure-samples
+      kind: GitRepository             # Points to the repository
+      name: aks-store-demo-charts
 ```
 
-**Important**: The `chart: aks-store-demo` field tells Flux **exactly where** to look for the chart. This maps to the `/charts/aks-store-demo/` directory in the repository. If the chart were in a different location, you would specify that path instead.
+**Important**: The `chart: aks-store-demo` field tells Flux to look for the chart at `/charts/aks-store-demo/` directory in the repository. This follows the standard Helm chart repository convention where charts are stored in a `/charts/` subdirectory.
 
-**Examples of different chart references:**
-```yaml
-# Chart in root directory
-chart: my-app
-
-# Chart in charts subdirectory  
-chart: charts/my-app
-
-# Chart in nested path
-chart: helm/charts/my-application
-```
 
 **Azure Samples Convention:**
 The Azure Samples repository follows a common convention of storing charts under `/charts/`, but this is **not automatic**. Flux only knows to look there because:

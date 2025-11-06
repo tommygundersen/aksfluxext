@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: aks-store-demo-dev
+  namespace: flux-system
+spec:
+  interval: 5m
+  targetNamespace: aks-store-demo-dev
+  chart:
+    spec:
+      chart: charts/aks-store-demo
+      sourceRef:
+        kind: GitRepository
+        name: aks-store-demo-charts
+        namespace: flux-system
+      interval: 1m
+  values:
+    # Development environment specific values
+    replicaCount:
+      order: 1
+      product: 1
+      store-front: 1
+      store-admin: 1
+      makeline: 1
+      accounting: 1
+      rabbitmq: 1
+      mongodb: 1
+    
+    # Resource limits for development
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "128Mi"
+      limits:
+        cpu: "100m"
+        memory: "256Mi"
+    
+    # Development specific configurations
+    env: "development"
