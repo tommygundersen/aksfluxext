@@ -1078,10 +1078,11 @@ Create `helm-gitops/dev/helmrelease.yaml`:
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: aks-store-dev
+  name: aks-store-helm-dev
   namespace: default
 spec:
   interval: 1m
+  targetNamespace: helm-demo
   chart:
     spec:
       chart: aks-store-demo
@@ -1093,7 +1094,7 @@ spec:
       interval: 1m
   values:
     # Development values inline
-    namespace: default
+    namespace: helm-demo
     storeFront:
       replicas: 1
       service:
@@ -1129,10 +1130,11 @@ Create `helm-gitops/prod/helmrelease.yaml`:
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: aks-store-prod
+  name: aks-store-helm-prod
   namespace: default
 spec:
   interval: 1m
+  targetNamespace: helm-demo
   chart:
     spec:
       chart: aks-store-demo
@@ -1144,7 +1146,7 @@ spec:
       interval: 1m
   values:
     # Production values inline
-    namespace: default
+    namespace: helm-demo
     storeFront:
       replicas: 3
       service:
@@ -1301,6 +1303,57 @@ The Azure Samples repository follows a common convention of storing charts under
 3. **Reference**: Point HelmRepository to your hosted URL
 
 For this lab, we're using the Azure Samples source repository to demonstrate how Flux can consume charts directly from source code.
+
+**⚠️ IMPORTANT: Resource Conflicts Warning**
+
+Before proceeding with Helm-based GitOps, you need to understand that **both approaches will conflict** if deployed simultaneously:
+
+**Resource Conflicts:**
+- Both Kustomize and Helm will try to create the same Kubernetes resources
+- Same resource names in the same namespace will cause conflicts
+- Flux will report errors when trying to apply duplicate resources
+
+**Conflict Resolution Options:**
+
+1. **Use Different Namespaces** (Recommended for this lab):
+```yaml
+# In HelmRelease, use different namespace
+metadata:
+  name: aks-store-helm
+  namespace: helm-demo  # Different namespace
+
+spec:
+  targetNamespace: helm-demo  # Deploy to different namespace
+```
+
+2. **Delete Existing Kustomize Deployment** (Alternative):
+```bash
+# Remove existing Kustomize-based deployment first
+az k8s-configuration flux delete \
+  --cluster-name $DEV_CLUSTER_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --name aks-store-config \
+  --cluster-type managedClusters \
+  --yes
+
+# Wait for resources to be cleaned up
+kubectl delete all -l app.kubernetes.io/managed-by=kustomize-controller
+```
+
+3. **Different Resource Names** (Advanced):
+```yaml
+# In Helm values, use different name prefixes
+nameOverride: "helm-aks-store"
+fullnameOverride: "helm-aks-store-demo"
+```
+
+**Recommendation for This Lab:**
+- **Keep your existing Kustomize deployment** running in the `default` namespace
+- **Deploy Helm version** to a separate `helm-demo` namespace  
+- **Compare both approaches** side by side
+- **Clean up one before production** use
+
+This allows you to see both GitOps approaches working without conflicts.
 
 ### 11.4 Configure Flux for Helm-based GitOps
 
